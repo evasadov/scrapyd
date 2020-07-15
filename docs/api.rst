@@ -1,3 +1,4 @@
+
 .. _api:
 
 API
@@ -5,24 +6,12 @@ API
 
 The following section describes the available resources in Scrapyd JSON API.
 
-daemonstatus.json
------------------
+.. warning::
 
-To check the load status of a service.
-
-* Supported Request Methods: ``GET``
-
-Example request::
-
-    curl http://localhost:6800/daemonstatus.json
-
-If basic authentication is enabled::
-
-    curl -u yourusername:yourpassword http://localhost:6800/daemonstatus.json
-
-Example response::
-
-    { "status": "ok", "running": "0", "pending": "0", "finished": "0", "node_name": "node-name" }
+    This documentation is for the old |version| version of scrapyd.
+    Unless you are maintaining an old project that requires it,
+    you may instead want the
+    `latest version <http://scrapyd.readthedocs.org/en/latest/>`_.
 
 
 addversion.json
@@ -45,14 +34,6 @@ Example response::
 
     {"status": "ok", "spiders": 3}
 
-.. note:: Scrapyd uses the `distutils LooseVersion`_ to interpret the version numbers you provide.
-
-The latest version for a project will be used by default whenever necessary.
-
-schedule.json_ and listspiders.json_ allow you to explicitly set the desired project version.
-
-.. _distutils LooseVersion: http://epydoc.sourceforge.net/stdlib/distutils.version.LooseVersion-class.html
-
 .. _scrapyd-schedule:
 
 schedule.json
@@ -65,10 +46,7 @@ Schedule a spider run (also known as a job), returning the job id.
 
   * ``project`` (string, required) - the project name
   * ``spider`` (string, required) - the spider name
-  * ``setting`` (string, optional) - a Scrapy setting to use when running the spider
-  * ``jobid`` (string, optional) - a job id used to identify the job, overrides the default generated UUID
-  * ``priority`` (float, optional) - priority for this project's spider queue — 0 by default
-  * ``_version`` (string, optional) - the version of the project to use
+  * ``setting`` (string, optional) - a scrapy setting to use when running the spider
   * any other parameter is passed as spider argument
 
 Example request::
@@ -83,9 +61,6 @@ Example request passing a spider argument (``arg1``) and a setting
 (`DOWNLOAD_DELAY`_)::
 
     $ curl http://localhost:6800/schedule.json -d project=myproject -d spider=somespider -d setting=DOWNLOAD_DELAY=2 -d arg1=val1
-
-.. note:: Spiders scheduled with scrapyd should allow for an arbitrary number of keyword arguments
-          as scrapyd sends internally generated spider arguments to the spider being scheduled
 
 .. _cancel.json:
 
@@ -149,13 +124,12 @@ Example response::
 listspiders.json
 ----------------
 
-Get the list of spiders available in the last (unless overridden) version of some project.
+Get the list of spiders available in the last version of some project.
 
 * Supported Request Methods: ``GET``
 * Parameters:
 
   * ``project`` (string, required) - the project name
-  * ``_version`` (string, optional) - the version of the project to examine
 
 Example request::
 
@@ -177,38 +151,18 @@ Get the list of pending, running and finished jobs of some project.
 * Supported Request Methods: ``GET``
 * Parameters:
 
-  * ``project`` (string, option) - restrict results to project name
+  * ``project`` (string, required) - the project name
 
 Example request::
 
-    $ curl http://localhost:6800/listjobs.json?project=myproject | python -m json.tool
+    $ curl http://localhost:6800/listjobs.json?project=myproject
 
 Example response::
 
-    {
-        "status": "ok",
-        "pending": [
-            {
-                "project": "myproject", "spider": "spider1",
-                "id": "78391cc0fcaf11e1b0090800272a6d06"
-            }
-        ],
-        "running": [
-            {
-                "id": "422e608f9f28cef127b3d5ef93fe9399",
-                "project": "myproject", "spider": "spider2",
-                "start_time": "2012-09-12 10:14:03.594664"
-            }
-        ],
-        "finished": [
-            {
-                "id": "2f16646cfcaf11e1b0090800272a6d06",
-                "project": "myproject", "spider": "spider3",
-                "start_time": "2012-09-12 10:14:03.594664",
-                "end_time": "2012-09-12 10:24:03.594664"
-            }
-        ]
-    }
+    {"status": "ok",
+     "pending": [{"id": "78391cc0fcaf11e1b0090800272a6d06", "spider": "spider1"}],
+     "running": [{"id": "422e608f9f28cef127b3d5ef93fe9399", "spider": "spider2"}],
+     "finished": [{"id": "2f16646cfcaf11e1b0090800272a6d06", "spider": "spider3", "start_time": "2012-09-12 10:14:03.594664", "end_time": "2012-09-12 10:24:03.594664"}]}
 
 .. note:: All job data is kept in memory and will be reset when the Scrapyd service is restarted. See `issue 12`_.
 
